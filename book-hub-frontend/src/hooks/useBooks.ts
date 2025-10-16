@@ -1,32 +1,51 @@
-import { useEffect, useState } from 'react'
-import { fetchBooks } from '../api'
-import type { Book } from '../types'
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import type { RootState } from '../app/store';
+import api from '../api/axios';
+import type { Book } from '../types';
 
-export default function useBooks(query?: string) {
-  const [books, setBooks] = useState<Book[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default function useBooks() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const filters = useSelector((state: RootState) => state.filters);
+  const { query, genres, sortBy } = filters;
 
   useEffect(() => {
-    let mounted = true
-    setLoading(true)
-    fetchBooks(query)
-      .then((data) => {
-        if (!mounted) return
-        setBooks(data)
+    let mounted = true;
+    setLoading(true);
+
+    // Directly use the API to get better error handling
+    api.get('/books', { 
+      params: {
+        query,
+        genres: genres.join(','),
+        sortBy
+      }
+    })
+      .then((response) => {
+        if (!mounted) return;
+        const data = response.data?.data || [];
+        setBooks(data);
+        setError(null);
       })
-      .catch(() => {
-        if (!mounted) return
-        setError('Failed to fetch books')
+      .catch((err) => {
+        if (!mounted) return;
+        const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch books';
+        setError(`Error: ${errorMessage}`);
+        console.error('Error fetching books:', err);
+        setBooks([]);
       })
       .finally(() => {
-        if (!mounted) return
-        setLoading(false)
-      })
-    return () => {
-      mounted = false
-    }
-  }, [query])
+        if (!mounted) return;
+        setLoading(false);
+      });
 
-  return { books, loading, error }
+    return () => {
+      mounted = false;
+    };
+  }, [query, genres, sortBy]);
+
+  return { books, loading, error };
 }

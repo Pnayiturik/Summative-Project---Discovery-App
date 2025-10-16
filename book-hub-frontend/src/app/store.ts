@@ -1,13 +1,11 @@
-// Minimal typed placeholder for a Redux store file.
-// If you plan to use Redux, install @reduxjs/toolkit and react-redux and replace this with a real store.
+import { configureStore } from "@reduxjs/toolkit";
+import filterReducer from "../features/filters/filterSlice";
 
-export type RootState = unknown
+export const store = configureStore({
+  reducer: {
+    filters: filterReducer,
+  }
+});
 
-// Example placeholder export so imports don't break.
-const store = {
-  getState(): RootState {
-    return {}
-  },
-}
-
-export default store
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

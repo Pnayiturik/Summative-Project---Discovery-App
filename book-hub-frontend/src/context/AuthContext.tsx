@@ -1,18 +1,20 @@
-import React, { createContext, useState } from 'react'
+import React, { useState, useEffect } from "react";
+import type { User } from "../types";
+import { AuthContext } from "./auth";
 
-export type Auth = {
-  user: string | null
-  login: (name: string) => void
-  logout: () => void
-}
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
+    const raw = localStorage.getItem("bookhub_user");
+    return raw ? JSON.parse(raw) : null;
+  });
 
-const AuthContext = createContext<Auth | undefined>(undefined)
+  useEffect(() => {
+    if (user) localStorage.setItem("bookhub_user", JSON.stringify(user));
+    else localStorage.removeItem("bookhub_user");
+  }, [user]);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<string | null>(null)
-  const login = (name: string) => setUser(name)
-  const logout = () => setUser(null)
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>
-}
+  const login = (u: User) => setUser(u);
+  const logout = () => setUser(null);
 
-export default AuthContext
+  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+};
