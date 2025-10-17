@@ -1,37 +1,52 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const Book = require("../models/book");
 const router = express.Router();
 
 // GET /api/books  -> list + filtering + pagination
 router.get("/", async (req, res) => {
-  const { page = 1, pageSize = 12, query, genres, authors, sortBy, startDate, endDate } = req.query;
-  const filter = {};
+  try {
+    const { page = 1, pageSize = 12, query, genres, authors, sortBy, startDate, endDate } = req.query;
+    const filter = {};
 
-  if (query) {
-    filter.$or = [
-      { title: new RegExp(query, "i") },
-      { "authors.name": new RegExp(query, "i") },
-      { description: new RegExp(query, "i") }
-    ];
+    if (query) {
+      filter.$or = [
+        { title: new RegExp(query, "i") },
+        { "authors.name": new RegExp(query, "i") },
+        { description: new RegExp(query, "i") }
+      ];
+    }
+    if (genres) filter.genre = { $in: Array.isArray(genres) ? genres : genres.split(",") };
+    if (authors) filter["authors.name"] = { $in: Array.isArray(authors) ? authors : authors.split(",") };
+    if (startDate || endDate) {
+      filter.publishedDate = {};
+      if (startDate) filter.publishedDate.$gte = new Date(startDate);
+      if (endDate) filter.publishedDate.$lte = new Date(endDate);
+    }
+
+    const sort = {};
+    if (sortBy === "rating") sort.rating = -1;
+    else if (sortBy === "title") sort.title = 1;
+    else sort.publishedDate = -1;
+
+    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+    
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      throw new Error('Database connection is not ready');
+    }
+
+    const books = await Book.find(filter).sort(sort).skip(skip).limit(parseInt(pageSize));
+    const total = await Book.countDocuments(filter);
+
+    res.json({ data: books, meta: { total, page: parseInt(page), pageSize: parseInt(pageSize) } });
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch books', 
+      error: error.message 
+    });
   }
-  if (genres) filter.genre = { $in: Array.isArray(genres) ? genres : genres.split(",") };
-  if (authors) filter["authors.name"] = { $in: Array.isArray(authors) ? authors : authors.split(",") };
-  if (startDate || endDate) {
-    filter.publishedDate = {};
-    if (startDate) filter.publishedDate.$gte = new Date(startDate);
-    if (endDate) filter.publishedDate.$lte = new Date(endDate);
-  }
-
-  const sort = {};
-  if (sortBy === "rating") sort.rating = -1;
-  else if (sortBy === "title") sort.title = 1;
-  else sort.publishedDate = -1;
-
-  const skip = (parseInt(page) - 1) * parseInt(pageSize);
-  const books = await Book.find(filter).sort(sort).skip(skip).limit(parseInt(pageSize));
-  const total = await Book.countDocuments(filter);
-
-  res.json({ data: books, meta: { total, page: parseInt(page), pageSize: parseInt(pageSize) } });
 });
 
 // GET /api/books/:id

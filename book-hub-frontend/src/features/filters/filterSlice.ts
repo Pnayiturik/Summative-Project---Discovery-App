@@ -37,11 +37,15 @@ const filterSlice = createSlice({
     setPage(state, action: PayloadAction<number>) { 
       state.page = action.payload; 
     },
+    setPageSize(state, action: PayloadAction<number>) {
+      state.pageSize = action.payload;
+      state.page = 1; // Reset to first page when changing page size
+    },
     resetFilters() { 
       return initialState; 
     }
   }
 });
 
-export const { setQuery, toggleGenre, setAuthors, setSortBy, setPage, resetFilters } = filterSlice.actions;
+export const { setQuery, toggleGenre, setAuthors, setSortBy, setPage, setPageSize, resetFilters } = filterSlice.actions;
 export default filterSlice.reducer;

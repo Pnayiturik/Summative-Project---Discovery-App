@@ -8,9 +8,15 @@ export default function useBooks() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [totalBooks, setTotalBooks] = useState(0);
   
   const filters = useSelector((state: RootState) => state.filters);
-  const { query, genres, sortBy } = filters;
+  const { query, genres, sortBy, page, pageSize } = filters;
+  
+  const refetch = () => setRefreshKey(key => key + 1);
+  
+  const totalPages = Math.ceil(totalBooks / pageSize);
 
   useEffect(() => {
     let mounted = true;
@@ -21,13 +27,16 @@ export default function useBooks() {
       params: {
         query,
         genres: genres.join(','),
-        sortBy
+        sortBy,
+        page,
+        pageSize
       }
     })
       .then((response) => {
         if (!mounted) return;
-        const data = response.data?.data || [];
-        setBooks(data);
+        const { data, meta } = response.data;
+        setBooks(data || []);
+        setTotalBooks(meta?.total || 0);
         setError(null);
       })
       .catch((err) => {
@@ -45,7 +54,16 @@ export default function useBooks() {
     return () => {
       mounted = false;
     };
-  }, [query, genres, sortBy]);
+  }, [query, genres, sortBy, refreshKey]);
 
-  return { books, loading, error };
+  return { 
+    books, 
+    loading, 
+    error, 
+    refetch,
+    totalBooks,
+    totalPages,
+    currentPage: page,
+    pageSize
+  };
 }
