@@ -1,14 +1,14 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:4000/api", // Back to port 4000
+  baseURL: "http://localhost:4000/api",
   headers: { "Content-Type": "application/json" },
   withCredentials: true,
-  timeout: 10000, // Increased timeout to 10 seconds
-  validateStatus: (status) => status >= 200 && status < 500 // Accept 2xx-4xx responses
+  timeout: 10000, 
+  validateStatus: (status) => status >= 200 && status < 500 
 });
 
-// attach token if present
+
 api.interceptors.request.use(config => {
   const raw = localStorage.getItem("bookhub_user");
   if (raw) {
