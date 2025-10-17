@@ -61,7 +61,32 @@ export default function AddBookDialog({ open, onClose, onBookAdded }: AddBookDia
     setLoading(true);
 
     try {
-      await api.post('/books', formData);
+      // Validate required fields
+      if (!formData.title.trim()) {
+        throw new Error('Title is required');
+      }
+      if (formData.authors.some(a => !a.name.trim())) {
+        throw new Error('All authors must have a name');
+      }
+      if (formData.genre.length === 0) {
+        throw new Error('At least one genre must be selected');
+      }
+      if (!formData.description.trim()) {
+        throw new Error('Description is required');
+      }
+      if (formData.pages < 1) {
+        throw new Error('Page count must be at least 1');
+      }
+      if (!formData.isbn.trim()) {
+        throw new Error('ISBN is required');
+      }
+
+      const response = await api.post('/books', formData);
+      
+      if (!response.data) {
+        throw new Error('Failed to add book - no response from server');
+      }
+
       onBookAdded();
       onClose();
       // Reset form
@@ -76,8 +101,10 @@ export default function AddBookDialog({ open, onClose, onBookAdded }: AddBookDia
         pages: 0,
         isbn: '',
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add book');
+    } catch (err: any) {
+      console.error('Error adding book:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to add book';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

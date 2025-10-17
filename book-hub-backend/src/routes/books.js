@@ -123,14 +123,23 @@ router.get("/:id", async (req, res) => {
 // POST /api/books (create) - protected
 router.post("/", auth, async (req, res) => {
   try {
+    console.log('POST /books request:', { userId: req.user?.userId, body: req.body });
+    
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
     const book = new Book({
       ...req.body,
       createdBy: req.user.userId
     });
-    await book.save();
-    res.status(201).json(book);
+    
+    const savedBook = await book.save();
+    console.log('Book created successfully:', savedBook._id);
+    res.status(201).json(savedBook);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error creating book:', error);
+    res.status(400).json({ message: error.message || 'Failed to create book' });
   }
 });
 

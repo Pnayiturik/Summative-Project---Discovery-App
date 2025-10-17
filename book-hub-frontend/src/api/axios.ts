@@ -32,10 +32,15 @@ api.interceptors.request.use(config => {
       if (data && data.token) {
         if (!config.headers) config.headers = {};
         config.headers.Authorization = `Bearer ${data.token}`;
+        console.log('Auth token added to request:', config.method?.toUpperCase(), config.url);
+      } else {
+        console.warn('No token found in user data');
       }
     } catch (error) {
       console.error('Error parsing auth token:', error);
     }
+  } else {
+    console.warn('No user data in localStorage');
   }
   return config;
 });
