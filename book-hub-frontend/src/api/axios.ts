@@ -1,8 +1,11 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "/api",
-  headers: { "Content-Type": "application/json" }
+  baseURL: "http://localhost:4000/api", // Back to port 4000
+  headers: { "Content-Type": "application/json" },
+  withCredentials: true,
+  timeout: 10000, // Increased timeout to 10 seconds
+  validateStatus: (status) => status >= 200 && status < 500 // Accept 2xx-4xx responses
 });
 
 // attach token if present

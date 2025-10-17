@@ -6,7 +6,13 @@ const router = express.Router();
 // Register new user
 router.post('/register', async (req, res) => {
   try {
+    console.log('Registration attempt:', req.body);
     const { username, email, password } = req.body;
+    
+    if (!username || !email || !password) {
+      console.log('Missing required fields:', { username, email, password: !!password });
+      return res.status(400).json({ message: 'All fields are required' });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ 
@@ -22,8 +28,10 @@ router.post('/register', async (req, res) => {
     }
 
     // Create new user
+    console.log('Creating new user with:', { username, email });
     const user = new User({ username, email, password });
     await user.save();
+    console.log('User created successfully:', user._id);
 
     // Generate JWT token
     const token = jwt.sign(

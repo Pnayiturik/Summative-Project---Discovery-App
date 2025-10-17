@@ -6,8 +6,17 @@ const router = express.Router();
 // GET /api/books  -> list + filtering + pagination
 router.get("/", async (req, res) => {
   try {
+    console.log('Received GET /books request');
+    console.log('Query params:', req.query);
+    
     const { page = 1, pageSize = 12, query, genres, authors, sortBy, startDate, endDate } = req.query;
     const filter = {};
+    
+    // Check database connection
+    if (mongoose.connection.readyState !== 1) {
+      console.error('Database not connected. Connection state:', mongoose.connection.readyState);
+      throw new Error('Database connection is not ready');
+    }
 
     if (query) {
       filter.$or = [
@@ -36,10 +45,26 @@ router.get("/", async (req, res) => {
       throw new Error('Database connection is not ready');
     }
 
+    console.log('Executing query with filter:', filter);
+    console.log('Sort:', sort);
+    console.log('Skip:', skip);
+    console.log('Limit:', pageSize);
+
     const books = await Book.find(filter).sort(sort).skip(skip).limit(parseInt(pageSize));
     const total = await Book.countDocuments(filter);
 
-    res.json({ data: books, meta: { total, page: parseInt(page), pageSize: parseInt(pageSize) } });
+    console.log(`Found ${books.length} books out of ${total} total`);
+
+    res.json({ 
+      data: books, 
+      meta: { 
+        total, 
+        page: parseInt(page), 
+        pageSize: parseInt(pageSize),
+        filter,
+        sort
+      } 
+    });
   } catch (error) {
     console.error('Error fetching books:', error);
     res.status(500).json({ 

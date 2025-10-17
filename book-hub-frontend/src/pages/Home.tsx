@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Box, Paper, TextField, FormControl, InputLabel, Select, MenuItem, CircularProgress, Button } from '@mui/material';
+import { Container, Typography, Box, Paper, FormControl, InputLabel, Select, MenuItem, CircularProgress, Button } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import SearchBar from '../components/SearchBar';
 import { useAuth } from '../context/useAuth';
 import Pagination from '../components/Pagination';
 import { setPage, setPageSize } from '../features/filters/filterSlice';
@@ -57,11 +58,18 @@ export default function Home() {
       <Box sx={{ mb: 4 }}>
         <Paper sx={{ p: 2 }}>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            <TextField
-              label="Search books"
-              variant="outlined"
+            <SearchBar
               value={filters.query}
-              onChange={(e) => dispatch(setQuery(e.target.value))}
+              onChange={(value) => dispatch(setQuery(value))}
+              suggestions={books.filter(book => 
+                book.title.toLowerCase().includes(filters.query.toLowerCase()) ||
+                book.authors.some(author => 
+                  (typeof author === 'string' ? author : author.name)
+                    .toLowerCase()
+                    .includes(filters.query.toLowerCase())
+                )
+              )}
+              loading={loading}
               sx={{ flexGrow: 1 }}
             />
             <FormControl sx={{ minWidth: 200 }}>
@@ -69,7 +77,7 @@ export default function Home() {
               <Select
                 value={filters.sortBy}
                 label="Sort by"
-                onChange={(e) => dispatch(setSortBy(e.target.value))}
+                onChange={(e) => dispatch(setSortBy(e.target.value as "date" | "rating" | "title"))}
               >
                 <MenuItem value="date">Publication Date</MenuItem>
                 <MenuItem value="rating">Rating</MenuItem>

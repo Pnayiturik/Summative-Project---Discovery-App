@@ -59,5 +59,5 @@ const filterSlice = createSlice({
   }
 });
 
-export const { setQuery, toggleGenre, setAuthors, setSortBy, setPage, setPageSize, resetFilters } = filterSlice.actions;
+export const { setQuery, toggleGenre, setAuthors, setSortBy, setPage, setPageSize, resetFilters, setDateRange } = filterSlice.actions;
 export default filterSlice.reducer;

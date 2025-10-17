@@ -12,7 +12,7 @@ export default function useBooks() {
   const [totalBooks, setTotalBooks] = useState(0);
   
   const filters = useSelector((state: RootState) => state.filters);
-  const { query, genres, sortBy, page, pageSize } = filters;
+  const { query, genres, sortBy, page, pageSize, authors, startDate, endDate } = filters;
   
   const refetch = () => setRefreshKey(key => key + 1);
   
@@ -20,41 +20,75 @@ export default function useBooks() {
 
   useEffect(() => {
     let mounted = true;
-    setLoading(true);
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    // Directly use the API to get better error handling
-    api.get('/books', { 
-      params: {
-        query,
-        genres: genres.join(','),
-        sortBy,
-        page,
-        pageSize
-      }
-    })
-      .then((response) => {
-        if (!mounted) return;
-        const { data, meta } = response.data;
-        setBooks(data || []);
-        setTotalBooks(meta?.total || 0);
+    const fetchBooks = async () => {
+      if (!mounted) return;
+      
+      try {
+        setLoading(true);
         setError(null);
-      })
-      .catch((err) => {
+
+        console.log('Fetching books with params:', {
+          query,
+          genres,
+          authors,
+          sortBy,
+          page,
+          pageSize,
+          startDate,
+          endDate
+        });
+
+        const response = await api.get('/books', { 
+          params: {
+            query: query || undefined,
+            genres: genres.length ? genres.join(',') : undefined,
+            authors: authors.length ? authors.join(',') : undefined,
+            sortBy,
+            page,
+            pageSize,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined
+          }
+        });
+        
+        console.log('Server response:', response.data);
+
+        const { data, meta } = response.data;
+        if (mounted) {
+          setBooks(data || []);
+          setTotalBooks(meta?.total || 0);
+          setError(null);
+        }
+      } catch (err: any) {
         if (!mounted) return;
+
+        console.error('Error fetching books:', err);
+        
+        if (err.message === 'Network Error' && retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(fetchBooks, 1000 * retryCount); // Exponential backoff
+          return;
+        }
+
         const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch books';
         setError(`Error: ${errorMessage}`);
-        console.error('Error fetching books:', err);
         setBooks([]);
-      })
-      .finally(() => {
-        if (!mounted) return;
-        setLoading(false);
-      });
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchBooks();
 
     return () => {
       mounted = false;
     };
-  }, [query, genres, sortBy, refreshKey]);
+  }, [query, genres, authors, sortBy, page, pageSize, startDate, endDate, refreshKey]);
 
   return { 
     books, 
