@@ -41,6 +41,18 @@ const filterSlice = createSlice({
       state.pageSize = action.payload;
       state.page = 1; // Reset to first page when changing page size
     },
+    setDateRange(state, action: PayloadAction<{
+      startDate?: string | null;
+      endDate?: string | null;
+    }>) {
+      if ('startDate' in action.payload) {
+        state.startDate = action.payload.startDate;
+      }
+      if ('endDate' in action.payload) {
+        state.endDate = action.payload.endDate;
+      }
+      state.page = 1;
+    },
     resetFilters() { 
       return initialState; 
     }
