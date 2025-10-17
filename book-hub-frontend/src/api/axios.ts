@@ -3,10 +3,25 @@ import axios from "axios";
 const api = axios.create({
   baseURL: "http://localhost:4000/api",
   headers: { "Content-Type": "application/json" },
-  withCredentials: true,
-  timeout: 10000, 
+  timeout: 5000, // Reduced timeout for faster error feedback
   validateStatus: (status) => status >= 200 && status < 500 
 });
+
+// Add response interceptor for better error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', {
+      message: error.message,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    if (!error.response) {
+      throw new Error('Network error - Please check if the backend server is running on port 4000');
+    }
+    throw error;
+  }
+);
 
 
 api.interceptors.request.use(config => {
@@ -15,6 +30,7 @@ api.interceptors.request.use(config => {
     try {
       const data = JSON.parse(raw);
       if (data && data.token) {
+        if (!config.headers) config.headers = {};
         config.headers.Authorization = `Bearer ${data.token}`;
       }
     } catch (error) {

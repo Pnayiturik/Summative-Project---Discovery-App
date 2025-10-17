@@ -11,7 +11,7 @@ import {
   Link
 } from '@mui/material';
 import { useAuth } from '../context/useAuth';
-import api from '../api/axios';
+import { login as loginApi, register as registerApi, type LoginData, type RegisterData } from '../api/auth';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -29,12 +29,25 @@ export default function Login() {
     setError('');
     
     try {
-      const endpoint = isRegister ? '/auth/register' : '/auth/login';
-      const { data } = await api.post(endpoint, formData);
-      login(data);
-      navigate('/');
+      const data = await (isRegister 
+        ? registerApi(formData as RegisterData)
+        : loginApi(formData as LoginData));
+        
+      if (data.user && data.token) {
+        // Use the auth context to store the user
+        login({
+          ...data.user,
+          _id: data.user.id, // ensure both id fields are set
+          token: data.token
+        });
+        navigate('/');
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred');
+      console.error('Login error:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+      setError(`Error: ${errorMessage}`);
     }
   };
 

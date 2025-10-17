@@ -17,6 +17,10 @@ export default function Pagination({
   onPageChange, 
   onPageSizeChange 
 }: PaginationProps) {
+  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    console.log('Changing to page:', value);
+    onPageChange(value);
+  };
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -42,9 +46,11 @@ export default function Pagination({
       <MuiPagination 
         count={totalPages}
         page={currentPage}
-        onChange={(_, page) => onPageChange(page)}
+        onChange={handlePageChange}
         color="primary"
         size="large"
+        boundaryCount={1}
+        siblingCount={1}
       />
 
       <Box sx={{ minWidth: 120, textAlign: 'right' }}>

@@ -12,7 +12,7 @@ const isBookOwner = async (req, res, next) => {
       return res.status(404).json({ message: "Book not found" });
     }
     
-    if (book.createdBy.toString() !== req.user._id.toString()) {
+    if (book.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Not authorized to perform this action" });
     }
     
@@ -29,7 +29,10 @@ router.get("/", async (req, res) => {
     console.log('Received GET /books request');
     console.log('Query params:', req.query);
     
-    const { page = 1, pageSize = 12, query, genres, authors, sortBy, startDate, endDate } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const pageSize = Math.max(1, parseInt(req.query.pageSize) || 12);
+    const { query, genres, authors, sortBy, startDate, endDate } = req.query;
+    
     const filter = {};
     
     // Check database connection
@@ -58,39 +61,55 @@ router.get("/", async (req, res) => {
     else if (sortBy === "title") sort.title = 1;
     else sort.publishedDate = -1;
 
-    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+    const skip = (page - 1) * pageSize;
     
-    // Check database connection
-    if (mongoose.connection.readyState !== 1) {
-      throw new Error('Database connection is not ready');
-    }
-
     console.log('Executing query with filter:', filter);
     console.log('Sort:', sort);
     console.log('Skip:', skip);
     console.log('Limit:', pageSize);
 
-    const books = await Book.find(filter).sort(sort).skip(skip).limit(parseInt(pageSize));
-    const total = await Book.countDocuments(filter);
+    const [books, total] = await Promise.all([
+      Book.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(pageSize)
+        .lean(),
+      Book.countDocuments(filter)
+    ]);
 
-    console.log(`Found ${books.length} books out of ${total} total`);
-
+    const numPages = Math.ceil(total / pageSize);
+    console.log(`Found ${books.length} books out of ${total} total, Page ${page} of ${numPages}`);
     res.json({ 
       data: books, 
       meta: { 
         total, 
         page: parseInt(page), 
         pageSize: parseInt(pageSize),
+        totalPages: numPages,
         filter,
         sort
       } 
     });
   } catch (error) {
     console.error('Error fetching books:', error);
-    res.status(500).json({ 
-      message: 'Failed to fetch books', 
-      error: error.message 
-    });
+    
+    // Check for specific error types
+    if (error.name === 'MongooseError' || error.name === 'MongoError') {
+      res.status(503).json({ 
+        message: 'Database error, please try again', 
+        error: error.message 
+      });
+    } else if (error.message.includes('Database connection is not ready')) {
+      res.status(503).json({ 
+        message: 'Database connection error, please try again', 
+        error: error.message 
+      });
+    } else {
+      res.status(500).json({ 
+        message: 'Failed to fetch books', 
+        error: error.message 
+      });
+    }
   }
 });
 
@@ -106,7 +125,7 @@ router.post("/", auth, async (req, res) => {
   try {
     const book = new Book({
       ...req.body,
-      createdBy: req.user._id
+      createdBy: req.user.userId
     });
     await book.save();
     res.status(201).json(book);
@@ -133,7 +152,7 @@ router.put("/:id", auth, isBookOwner, async (req, res) => {
 // DELETE /api/books/:id - protected, owner only
 router.delete("/:id", auth, isBookOwner, async (req, res) => {
   try {
-    await req.book.remove();
+    await Book.findByIdAndDelete(req.params.id);
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ message: error.message });

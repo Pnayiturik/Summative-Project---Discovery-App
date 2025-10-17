@@ -274,8 +274,27 @@ async function seedDatabase() {
     await Book.deleteMany({});
     console.log('Cleared existing books');
 
+    // Find or create a test user
+    const User = require('./models/user');
+    let user = await User.findOne({ email: 'pazzoinkba@gmail.com' });
+    
+    if (!user) {
+      user = await User.create({
+        username: 'Patrick',
+        email: 'pazzoinkba@gmail.com',
+        password: 'Patrick023'
+      });
+    }
+    console.log('Using user:', user._id);
+
+    // Add createdBy to all books
+    const booksWithUser = sampleBooks.map(book => ({
+      ...book,
+      createdBy: user._id
+    }));
+
     // Insert sample books
-    await Book.insertMany(sampleBooks);
+    await Book.insertMany(booksWithUser);
     console.log('Sample books inserted');
 
     console.log('Database seeded successfully');

@@ -17,12 +17,10 @@ export const register = async (data: RegisterData) => {
 };
 
 export const login = async (data: LoginData) => {
-  const response = await api.post('/auth/login', data);
-  if (response.data.user && response.data.token) {
-    localStorage.setItem('bookhub_user', JSON.stringify({
-      ...response.data.user,
-      token: response.data.token
-    }));
-  }
+  // Remove any undefined or empty fields
+  const cleanData = Object.fromEntries(
+    Object.entries(data).filter(([_, value]) => value !== undefined && value !== '')
+  );
+  const response = await api.post('/auth/login', cleanData);
   return response.data;
 };

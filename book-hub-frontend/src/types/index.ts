@@ -25,7 +25,8 @@ export interface Book {
 }
 
 export interface User {
-  _id?: string;
+  id?: string;
+  _id?: string; // backward compatibility
   username: string;
   email: string;
   token?: string;

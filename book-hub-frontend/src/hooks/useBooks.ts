@@ -10,13 +10,14 @@ export default function useBooks() {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [totalBooks, setTotalBooks] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   
   const filters = useSelector((state: RootState) => state.filters);
   const { query, genres, sortBy, page, pageSize, authors, startDate, endDate } = filters;
   
   const refetch = () => setRefreshKey(key => key + 1);
   
-  const totalPages = Math.ceil(totalBooks / pageSize);
+  // totalPages is now managed by state
 
   useEffect(() => {
     let mounted = true;
@@ -30,12 +31,13 @@ export default function useBooks() {
         setLoading(true);
         setError(null);
 
+        const currentPage = Math.max(1, page);
         console.log('Fetching books with params:', {
           query,
           genres,
           authors,
           sortBy,
-          page,
+          page: currentPage,
           pageSize,
           startDate,
           endDate
@@ -47,8 +49,8 @@ export default function useBooks() {
             genres: genres.length ? genres.join(',') : undefined,
             authors: authors.length ? authors.join(',') : undefined,
             sortBy,
-            page,
-            pageSize,
+            page: currentPage,
+            pageSize: parseInt(pageSize.toString()),
             startDate: startDate || undefined,
             endDate: endDate || undefined
           }
@@ -60,6 +62,7 @@ export default function useBooks() {
         if (mounted) {
           setBooks(data || []);
           setTotalBooks(meta?.total || 0);
+          setTotalPages(meta?.totalPages || 0);
           setError(null);
         }
       } catch (err: any) {
@@ -67,15 +70,19 @@ export default function useBooks() {
 
         console.error('Error fetching books:', err);
         
-        if (err.message === 'Network Error' && retryCount < maxRetries) {
+        if ((err.message === 'Network Error' || err.code === 'ECONNREFUSED') && retryCount < maxRetries) {
           retryCount++;
+          console.log(`Retrying (${retryCount}/${maxRetries})...`);
           setTimeout(fetchBooks, 1000 * retryCount); // Exponential backoff
           return;
         }
 
         const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch books';
         setError(`Error: ${errorMessage}`);
-        setBooks([]);
+        // Don't clear books on error unless it's a filter change
+        if (query || genres.length || authors.length || startDate || endDate) {
+          setBooks([]);
+        }
       } finally {
         if (mounted) {
           setLoading(false);

@@ -14,8 +14,7 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Allow frontend domains
-  credentials: true,
+  origin: '*', // Allow all origins for development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -40,11 +39,11 @@ app.use((req, res, next) => {
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);
 
-const PORT = process.env.PORT || 8000;
+const PORT = 4000; // Explicitly set to 4000
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something broke!' });
+  console.error('Server Error:', err);
+  res.status(500).json({ message: err.message || 'Something broke!' });
 });
 
 // Connect to MongoDB and start server
@@ -54,9 +53,15 @@ async function startServer() {
     console.log('Connecting to MongoDB at:', mongoUri);
     
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000, // 5 second timeout
-      heartbeatFrequencyMS: 2000,    // Check server status every 2 seconds
-      socketTimeoutMS: 45000,        // Close sockets after 45 seconds of inactivity
+      serverSelectionTimeoutMS: 10000, // 10 second timeout
+      heartbeatFrequencyMS: 5000,     // Check server status every 5 seconds
+      socketTimeoutMS: 60000,         // Close sockets after 60 seconds of inactivity
+      maxPoolSize: 50,                // Maximum number of connections
+      minPoolSize: 5,                 // Minimum number of connections
+      retryWrites: true,             // Retry failed writes
+      retryReads: true,              // Retry failed reads
+      connectTimeoutMS: 10000,       // Connection timeout
+      family: 4                      // Use IPv4
     });
     
     console.log("Connected to MongoDB database");

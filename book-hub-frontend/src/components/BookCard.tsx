@@ -27,7 +27,8 @@ export default function BookCard({ book, onEdit, onDelete }: {
           opacity: 1
         },
         '& .action-buttons': {
-          opacity: 1
+          opacity: 1,
+          transition: 'opacity 0.2s ease'
         }
       }
     }}>
@@ -38,14 +39,16 @@ export default function BookCard({ book, onEdit, onDelete }: {
             position: 'absolute', 
             top: 8, 
             right: 8, 
-            zIndex: 2,
+            zIndex: 999,
             display: 'flex',
-            gap: 1,
-            opacity: 0,
+            gap: 0.5,
+            opacity: 0.3,
             transition: 'opacity 0.3s ease',
             bgcolor: 'rgba(255, 255, 255, 0.9)',
-            borderRadius: 1,
-            padding: '4px'
+            borderRadius: '8px',
+            padding: '6px',
+            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+            backdropFilter: 'blur(4px)'
           }}
         >
           <IconButton
@@ -54,7 +57,14 @@ export default function BookCard({ book, onEdit, onDelete }: {
               e.stopPropagation();
               onEdit?.(book);
             }}
-            sx={{ bgcolor: 'background.paper' }}
+            sx={{ 
+              color: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                transform: 'scale(1.1)'
+              },
+              transition: 'all 0.2s ease'
+            }}
           >
             <EditIcon fontSize="small" />
           </IconButton>
@@ -65,7 +75,13 @@ export default function BookCard({ book, onEdit, onDelete }: {
               e.stopPropagation();
               onDelete?.(book);
             }}
-            sx={{ bgcolor: 'background.paper' }}
+            sx={{ 
+              '&:hover': {
+                backgroundColor: 'rgba(211, 47, 47, 0.08)',
+                transform: 'scale(1.1)'
+              },
+              transition: 'all 0.2s ease'
+            }}
           >
             <DeleteIcon fontSize="small" />
           </IconButton>
