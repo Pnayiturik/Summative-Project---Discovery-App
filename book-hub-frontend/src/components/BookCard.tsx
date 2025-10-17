@@ -1,9 +1,17 @@
-import { Card, CardContent, CardMedia, Typography, Rating, Chip, Stack, CardActionArea, Box } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Rating, Chip, Stack, CardActionArea, Box, IconButton } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import type { Book } from '../types';
+import { useAuth } from '../context/useAuth';
 
-export default function BookCard({ book }: { book: Book }) {
+export default function BookCard({ book, onEdit, onDelete }: { 
+  book: Book;
+  onEdit?: (book: Book) => void;
+  onDelete?: (book: Book) => void;
+}) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isOwner = user && book.createdBy === user._id;
 
   return (
     <Card sx={{ 
@@ -17,9 +25,52 @@ export default function BookCard({ book }: { book: Book }) {
         boxShadow: 6,
         '& .hover-info': {
           opacity: 1
+        },
+        '& .action-buttons': {
+          opacity: 1
         }
       }
     }}>
+      {isOwner && (
+        <Box 
+          className="action-buttons"
+          sx={{ 
+            position: 'absolute', 
+            top: 8, 
+            right: 8, 
+            zIndex: 2,
+            display: 'flex',
+            gap: 1,
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+            bgcolor: 'rgba(255, 255, 255, 0.9)',
+            borderRadius: 1,
+            padding: '4px'
+          }}
+        >
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit?.(book);
+            }}
+            sx={{ bgcolor: 'background.paper' }}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton
+            size="small"
+            color="error"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(book);
+            }}
+            sx={{ bgcolor: 'background.paper' }}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
       <CardActionArea onClick={() => navigate(`/book/${book._id}`)} sx={{ height: '100%' }}>
         <Box sx={{ position: 'relative', paddingTop: '150%' }}>
           <CardMedia

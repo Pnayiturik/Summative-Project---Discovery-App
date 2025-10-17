@@ -99,7 +99,7 @@ export default function Home() {
         </Box>
       ) : (
         <>
-          <BookList books={books} isLoading={loading} />
+          <BookList books={books} isLoading={loading} onBookUpdated={refetch} />
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

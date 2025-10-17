@@ -21,6 +21,7 @@ export interface Book {
   coverUrl?: string;
   pages?: number;
   isbn?: string;
+  createdBy?: string; // user ID who created the book
 }
 
 export interface User {

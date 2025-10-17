@@ -18,5 +18,11 @@ export const register = async (data: RegisterData) => {
 
 export const login = async (data: LoginData) => {
   const response = await api.post('/auth/login', data);
+  if (response.data.user && response.data.token) {
+    localStorage.setItem('bookhub_user', JSON.stringify({
+      ...response.data.user,
+      token: response.data.token
+    }));
+  }
   return response.data;
 };

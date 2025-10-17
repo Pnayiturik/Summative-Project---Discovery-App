@@ -6,6 +6,11 @@ const authorSchema = new mongoose.Schema({
 });
 
 const bookSchema = new mongoose.Schema({
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   title: { 
     type: String, 
     required: [true, 'Title is required'],

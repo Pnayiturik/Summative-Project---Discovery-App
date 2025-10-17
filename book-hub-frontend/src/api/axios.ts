@@ -12,8 +12,14 @@ const api = axios.create({
 api.interceptors.request.use(config => {
   const raw = localStorage.getItem("bookhub_user");
   if (raw) {
-    const user = JSON.parse(raw);
-    config.headers.Authorization = `Bearer ${user.token}`;
+    try {
+      const data = JSON.parse(raw);
+      if (data && data.token) {
+        config.headers.Authorization = `Bearer ${data.token}`;
+      }
+    } catch (error) {
+      console.error('Error parsing auth token:', error);
+    }
   }
   return config;
 });
