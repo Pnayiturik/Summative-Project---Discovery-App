@@ -1,9 +1,15 @@
+/**
+ * Represents an author of a book
+ */
 export interface Author {
   _id?: string;
   name: string;
   bio?: string;
 }
 
+/**
+ * Represents a book in the system
+ */
 export interface Book {
   _id?: string;
   title: string;
@@ -24,13 +30,17 @@ export interface User {
   token?: string;
 }
 
+/**
+ * Represents the state of filters in the Redux store
+ * Used for managing book filtering and search functionality
+ */
 export interface FilterState {
-  query: string;
-  genres: string[];       // selected genres
-  authors: string[];      // selected authors ids/names
-  sortBy: "date" | "rating" | "title";
-  page: number;
-  pageSize: number;
-  startDate?: string | null;
-  endDate?: string | null;
+  query: string;          // search query string
+  genres: string[];       // selected genres for filtering
+  authors: string[];      // selected authors for filtering
+  sortBy: "date" | "rating" | "title"; // current sort criteria
+  page: number;          // current page number (1-based)
+  pageSize: number;      // number of items per page
+  startDate?: string | null; // publication date range start
+  endDate?: string | null;   // publication date range end
 }

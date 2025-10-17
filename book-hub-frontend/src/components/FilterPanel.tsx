@@ -4,6 +4,19 @@ import type { RootState } from '../app/store';
 import { toggleGenre } from '../features/filters/filterSlice';
 import useBooks from '../hooks/useBooks';
 
+/**
+ * FilterPanel Component
+ * 
+ * Provides a responsive sidebar for filtering books by genre. Implements the following features:
+ * - Genre selection with visual feedback
+ * - Real-time book count per genre
+ * - "All Books" option to clear filters
+ * - Integration with Redux for filter state management
+ * 
+ * @returns {JSX.Element} A panel containing genre filter options
+ */
+
+// Constant array of available genres for type safety and reusability
 const GENRES = [
   'All Books',
   'Fiction',
