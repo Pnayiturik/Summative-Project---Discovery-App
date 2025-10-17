@@ -81,11 +81,7 @@ export default function Home() {
         </Paper>
       </Box>
 
-      {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
+      {error ? (
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h6" color="error">Error Loading Books</Typography>
           <Typography color="text.secondary" sx={{ mt: 1 }}>{error}</Typography>
@@ -95,7 +91,7 @@ export default function Home() {
         </Box>
       ) : (
         <>
-          <BookList books={books} />
+          <BookList books={books} isLoading={loading} />
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}

@@ -1,5 +1,6 @@
 import { Grid, Container, Typography, Box } from '@mui/material';
 import BookCard from './BookCard';
+import LoadingState from './LoadingState';
 import type { Book } from '../types';
 
 /**
@@ -12,7 +13,27 @@ import type { Book } from '../types';
  * @param {Book[]} props.books - Array of book objects to display
  * @returns {JSX.Element} A grid of book cards or an empty state message
  */
-export default function BookList({ books }: { books: Book[] }) {
+export default function BookList({ 
+  books, 
+  isLoading 
+}: { 
+  books: Book[];
+  isLoading?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Grid container spacing={3}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
+              <LoadingState type="book" />
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    );
+  }
+
   if (!books.length) {
     return (
       <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -27,7 +48,7 @@ export default function BookList({ books }: { books: Book[] }) {
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Grid container spacing={3}>
         {books.map((book) => (
-          <Grid item key={book.id} xs={12} sm={6} md={4} lg={3}>
+          <Grid item key={book._id} xs={12} sm={6} md={4} lg={3}>
             <BookCard book={book} />
           </Grid>
         ))}
