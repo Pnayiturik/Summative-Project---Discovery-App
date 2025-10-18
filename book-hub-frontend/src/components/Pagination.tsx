@@ -18,7 +18,6 @@ export default function Pagination({
   onPageSizeChange 
 }: PaginationProps) {
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
-    console.log('Changing to page:', value);
     onPageChange(value);
   };
   return (

@@ -33,8 +33,6 @@ export default function Login() {
         ? registerApi(formData as RegisterData)
         : loginApi(formData as LoginData));
       
-      console.log('Auth response:', data);
-      
       if (!data) {
         throw new Error('Empty response from server');
       }
@@ -55,7 +53,6 @@ export default function Login() {
       });
       navigate('/');
     } catch (err: any) {
-      console.error('Login error:', err);
       const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
       setError(`Error: ${errorMessage}`);
     }

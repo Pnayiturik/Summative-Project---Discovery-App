@@ -6,35 +6,14 @@ const bookRoutes = require("./routes/books");
 const authRoutes = require("./routes/auth");
 
 const app = express();
-// Add detailed request logging
-app.use((req, res, next) => {
-  console.log(`\n[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  next();
-});
 
 app.use(cors({
-  origin: '*', // Allow all origins for development
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Add CORS debug logging
-app.use((req, res, next) => {
-  res.on('finish', () => {
-    console.log(`Response Status: ${res.statusCode}`);
-    console.log('Response Headers:', res.getHeaders());
-  });
-  next();
-});
-
 app.use(express.json());
-
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`, req.body);
-  next();
-});
 
 app.use("/api/books", bookRoutes);
 app.use("/api/auth", authRoutes);

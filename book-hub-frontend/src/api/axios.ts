@@ -11,11 +11,6 @@ const api = axios.create({
 api.interceptors.response.use(
   response => response,
   error => {
-    console.error('API Error:', {
-      message: error.message,
-      url: error.config?.url,
-      method: error.config?.method
-    });
     if (!error.response) {
       throw new Error('Network error - Please check if the backend server is running on port 4000');
     }
@@ -32,15 +27,10 @@ api.interceptors.request.use(config => {
       if (data && data.token) {
         if (!config.headers) config.headers = {};
         config.headers.Authorization = `Bearer ${data.token}`;
-        console.log('Auth token added to request:', config.method?.toUpperCase(), config.url);
-      } else {
-        console.warn('No token found in user data');
       }
     } catch (error) {
-      console.error('Error parsing auth token:', error);
+      // Silently fail if token parsing fails
     }
-  } else {
-    console.warn('No user data in localStorage');
   }
   return config;
 });

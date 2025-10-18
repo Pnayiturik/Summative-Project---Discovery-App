@@ -26,21 +26,12 @@ const isBookOwner = async (req, res, next) => {
 // GET /api/books  -> list + filtering + pagination
 router.get("/", async (req, res) => {
   try {
-    console.log('Received GET /books request');
-    console.log('Query params:', req.query);
-    
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const pageSize = Math.max(1, parseInt(req.query.pageSize) || 12);
     const { query, genres, authors, sortBy, startDate, endDate } = req.query;
     
     const filter = {};
     
-    // Check database connection
-    if (mongoose.connection.readyState !== 1) {
-      console.error('Database not connected. Connection state:', mongoose.connection.readyState);
-      throw new Error('Database connection is not ready');
-    }
-
     if (query) {
       filter.$or = [
         { title: new RegExp(query, "i") },
@@ -62,11 +53,6 @@ router.get("/", async (req, res) => {
     else sort.publishedDate = -1;
 
     const skip = (page - 1) * pageSize;
-    
-    console.log('Executing query with filter:', filter);
-    console.log('Sort:', sort);
-    console.log('Skip:', skip);
-    console.log('Limit:', pageSize);
 
     const [books, total] = await Promise.all([
       Book.find(filter)
@@ -78,7 +64,6 @@ router.get("/", async (req, res) => {
     ]);
 
     const numPages = Math.ceil(total / pageSize);
-    console.log(`Found ${books.length} books out of ${total} total, Page ${page} of ${numPages}`);
     res.json({ 
       data: books, 
       meta: { 
@@ -123,8 +108,6 @@ router.get("/:id", async (req, res) => {
 // POST /api/books (create) - protected
 router.post("/", auth, async (req, res) => {
   try {
-    console.log('POST /books request:', { userId: req.user?.userId, body: req.body });
-    
     if (!req.user || !req.user.userId) {
       return res.status(401).json({ message: 'User not authenticated' });
     }
@@ -135,7 +118,6 @@ router.post("/", auth, async (req, res) => {
     });
     
     const savedBook = await book.save();
-    console.log('Book created successfully:', savedBook._id);
     res.status(201).json(savedBook);
   } catch (error) {
     console.error('Error creating book:', error);

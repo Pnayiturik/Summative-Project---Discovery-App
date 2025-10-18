@@ -102,7 +102,6 @@ export default function AddBookDialog({ open, onClose, onBookAdded }: AddBookDia
         isbn: '',
       });
     } catch (err: any) {
-      console.error('Error adding book:', err);
       const errorMessage = err.response?.data?.message || err.message || 'Failed to add book';
       setError(errorMessage);
     } finally {
