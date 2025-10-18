@@ -32,18 +32,28 @@ export default function Login() {
       const data = await (isRegister 
         ? registerApi(formData as RegisterData)
         : loginApi(formData as LoginData));
-        
-      if (data.user && data.token) {
-        // Use the auth context to store the user
-        login({
-          ...data.user,
-          _id: data.user.id, // ensure both id fields are set
-          token: data.token
-        });
-        navigate('/');
-      } else {
-        throw new Error('Invalid response from server');
+      
+      console.log('Auth response:', data);
+      
+      if (!data) {
+        throw new Error('Empty response from server');
       }
+      
+      if (!data.user) {
+        throw new Error('No user data in response');
+      }
+      
+      if (!data.token) {
+        throw new Error('No token in response');
+      }
+      
+      // Use the auth context to store the user
+      login({
+        ...data.user,
+        _id: data.user.id || data.user._id, // ensure both id fields are set
+        token: data.token
+      });
+      navigate('/');
     } catch (err: any) {
       console.error('Login error:', err);
       const errorMessage = err.response?.data?.message || err.message || 'An error occurred';

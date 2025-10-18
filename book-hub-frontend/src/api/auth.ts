@@ -12,15 +12,29 @@ export interface LoginData {
 }
 
 export const register = async (data: RegisterData) => {
-  const response = await api.post('/auth/register', data);
-  return response.data;
+  try {
+    const response = await api.post('/auth/register', data);
+    console.log('Register response:', response);
+    if (response.status >= 400) {
+      throw new Error(response.data?.message || 'Registration failed');
+    }
+    return response.data;
+  } catch (error: any) {
+    console.error('Register error:', error);
+    throw error;
+  }
 };
 
 export const login = async (data: LoginData) => {
-  // Remove any undefined or empty fields
-  const cleanData = Object.fromEntries(
-    Object.entries(data).filter(([_, value]) => value !== undefined && value !== '')
-  );
-  const response = await api.post('/auth/login', cleanData);
-  return response.data;
+  try {
+    const response = await api.post('/auth/login', data);
+    console.log('Login response:', response);
+    if (response.status >= 400) {
+      throw new Error(response.data?.message || 'Login failed');
+    }
+    return response.data;
+  } catch (error: any) {
+    console.error('Login error:', error);
+    throw error;
+  }
 };
